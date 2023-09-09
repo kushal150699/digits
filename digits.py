@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, metrics, svm
 from sklearn.model_selection import train_test_split
-from utils import data_preprocess, train_model, read_digits, split_train_dev_test, p_and_eval
+from utils import data_preprocess, train_model, read_digits, split_train_dev_test, p_and_eval,get_all_h_param_comb,tune_hparams
 import pdb
 
 ###############################################################################
@@ -56,21 +56,29 @@ import pdb
 # subsequently be used to predict the value of the digit for the samples
 # in the test subset.
 
+gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
+c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
+
+all_combos = get_all_h_param_comb(gamma_list,c_list)
+
+h_metric = metrics.accuracy_score
+
 ## Split data 
 X, y = read_digits()
 # X_train, X_test, y_train, y_test = split_dataset(X, y, test_size=0.3)
-X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=0.3, dev_size=0.3)
+# X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=0.3, dev_size=0.3)
 
 ## Use the preprocessed datas
-X_train = data_preprocess(X_train)
-X_test = data_preprocess(X_test)
+# X_train = data_preprocess(X_train)
+# X_dev = data_preprocess(X_dev)
+# X_test = data_preprocess(X_test)
 
-model = train_model(X_train, y_train, {'gamma': 0.001}, model_type='svm')
+# model = train_model(X_train, y_train, {'gamma': 0.001}, model_type='svm')
 
 # Predict the value of the digit on the test subset
 # predicted = model.predict(X_test)
 # Predict the value of the digit on the test subset
-predicted = p_and_eval(model, X_test, y_test)
+# predicted = p_and_eval(model, X_test, y_test)
 ###############################################################################
 # Below we visualize the first 4 test samples and show their predicted
 # digit value in the title.
@@ -85,20 +93,20 @@ predicted = p_and_eval(model, X_test, y_test)
 ###############################################################################
 # :func:`~sklearn.metrics.classification_report` builds a text report showing
 # the main classification metrics.
-print(
-    f"Classification report for classifier {model}:\n"
-    f"{metrics.classification_report(y_test, predicted)}\n"
-)
+# print(
+#     f"Classification report for classifier {model}:\n"
+#     f"{metrics.classification_report(y_test, predicted)}\n"
+# )
 
-###############################################################################
-# We can also plot a :ref:`confusion matrix <confusion_matrix>` of the
-# true digit values and the predicted digit values.
+# ###############################################################################
+# # We can also plot a :ref:`confusion matrix <confusion_matrix>` of the
+# # true digit values and the predicted digit values.
 
-disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted)
-disp.figure_.suptitle("Confusion Matrix")
-print(f"Confusion matrix:\n{disp.confusion_matrix}")
+# disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted)
+# disp.figure_.suptitle("Confusion Matrix")
+# print(f"Confusion matrix:\n{disp.confusion_matrix}")
 
-plt.show()
+# plt.show()
 
 ###############################################################################
 # If the results from evaluating a classifier are stored in the form of a
@@ -108,18 +116,35 @@ plt.show()
 
 
 # The ground truth and predicted lists
-y_true = []
-y_pred = []
-cm = disp.confusion_matrix
+# y_true = []
+# y_pred = []
+# cm = disp.confusion_matrix
 
 # For each cell in the confusion matrix, add the corresponding ground truths
 # and predictions to the lists
-for gt in range(len(cm)):
-    for pred in range(len(cm)):
-        y_true += [gt] * cm[gt][pred]
-        y_pred += [pred] * cm[gt][pred]
+# for gt in range(len(cm)):
+#     for pred in range(len(cm)):
+#         y_true += [gt] * cm[gt][pred]
+#         y_pred += [pred] * cm[gt][pred]
 
-print(
-    "Classification report rebuilt from confusion matrix:\n"
-    f"{metrics.classification_report(y_true, y_pred)}\n"
-)
+# print(
+#     "Classification report rebuilt from confusion matrix:\n"
+#     f"{metrics.classification_report(y_true, y_pred)}\n"
+# )
+
+test_sizes = [0.1, 0.2, 0.3]
+dev_sizes = [0.1, 0.2, 0.3]
+
+for test_s in test_sizes:
+    for dev_s in dev_sizes:
+        train_size = 1 - test_s - dev_s
+        X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
+
+        X_train = data_preprocess(X_train)
+        X_dev = data_preprocess(X_dev)
+        X_test = data_preprocess(X_test)
+        
+        best_hparams, best_model, best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric)
+        
+        print(f"test_size={test_s} dev_size={dev_s} train_size={train_size} train_acc={best_accuracy:.2f} dev_acc={best_accuracy:.2f} test_acc={best_accuracy:.2f}")
+        print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")

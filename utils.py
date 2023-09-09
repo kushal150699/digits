@@ -1,6 +1,6 @@
 # Import datasets, classifiers and performance metrics
 import matplotlib.pyplot as plt
-
+import itertools
 from sklearn import datasets, metrics, svm
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
@@ -10,6 +10,10 @@ def read_digits():
     X = data.images
     y = data.target
     return X, y
+
+def get_all_h_param_comb(gamma_list,c_list):
+    return list(itertools.product(gamma_list, c_list))
+
 
 ## function for data preprocessing
 def data_preprocess(data):
@@ -37,6 +41,23 @@ def train_model(x, y, model_params, model_type='svm'):
     return model 
 
 
+def tune_hparams(X_train, y_train, X_dev, y_dev, all_combos,metric):
+    best_accuracy = -1
+    best_model=None
+    best_hparams = None
+
+    for param in all_combos:
+        cur_model = train_model(X_train,y_train,{'gamma':param[0],'C':param[1]},model_type='svm')
+        dev_pred = p_and_eval(cur_model,X_dev,y_dev)
+        val_accuracy = metric(y_pred=dev_pred, y_true=y_dev)
+        if val_accuracy > best_accuracy:
+            best_accuracy = val_accuracy
+            best_hparams=param
+            best_model = cur_model
+        
+        return best_hparams, best_model, best_accuracy     
+
+
 def split_train_dev_test(X, y, test_size, dev_size):
     # Split data into test and temporary (train + dev) sets
     X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
@@ -54,34 +75,34 @@ def p_and_eval(model, X_test, y_test):
     predicted = model.predict(X_test)
 
     # Visualize the first 4 test samples and show their predicted digit value in the title.
-    _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-    for ax, image, prediction in zip(axes, X_test[:4], predicted[:4]):
-        ax.set_axis_off()
-        image = image.reshape(8, 8)
-        ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
-        ax.set_title(f"Prediction: {prediction}")
+    # _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
+    # for ax, image, prediction in zip(axes, X_test[:4], predicted[:4]):
+    #     ax.set_axis_off()
+    #     image = image.reshape(8, 8)
+    #     ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
+    #     ax.set_title(f"Prediction: {prediction}")
 
-    plt.show()
+    # plt.show()
 
-    # Print the classification report
-    print(f"Classification report for classifier {model}:\n{classification_report(y_test, predicted)}\n")
+    # # Print the classification report
+    # print(f"Classification report for classifier {model}:\n{classification_report(y_test, predicted)}\n")
 
-    # Plot the confusion matrix
-    disp = ConfusionMatrixDisplay.from_estimator(model, X_test, y_test)
-    disp.figure_.suptitle("Confusion Matrix")
-    print(f"Confusion matrix:\n{disp.confusion_matrix}\n")
+    # # Plot the confusion matrix
+    # disp = ConfusionMatrixDisplay.from_estimator(model, X_test, y_test)
+    # disp.figure_.suptitle("Confusion Matrix")
+    # print(f"Confusion matrix:\n{disp.confusion_matrix}\n")
 
     # Rebuild the classification report from the confusion matrix
-    y_true = []
-    y_pred = []
-    cm = disp.confusion_matrix
+    # y_true = []
+    # y_pred = []
+    # cm = disp.confusion_matrix
 
-    for gt in range(len(cm)):
-        for pred in range(len(cm)):
-            y_true += [gt] * cm[gt][pred]
-            y_pred += [pred] * cm[gt][pred]
+    # for gt in range(len(cm)):
+    #     for pred in range(len(cm)):
+    #         y_true += [gt] * cm[gt][pred]
+    #         y_pred += [pred] * cm[gt][pred]
 
-    print("Classification report rebuilt from confusion matrix:\n"
-          f"{classification_report(y_true, y_pred)}\n")
+    # print("Classification report rebuilt from confusion matrix:\n"
+    #       f"{classification_report(y_true, y_pred)}\n")
     
     return predicted

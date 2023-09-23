@@ -21,6 +21,6 @@ jobs:
       - name: Install dep
         run:  pip3 install --no-cache-dir -r requirements.txt
       - name: Echo 
-        run:  Python digits.py  
+        run:  python digits.py  
       - name: Run experiment
         run: python digits.py

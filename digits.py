@@ -56,17 +56,20 @@ import pdb
 # subsequently be used to predict the value of the digit for the samples
 # in the test subset.
 
-gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
-c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
+# gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
+# c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
 
-all_combos = get_all_h_param_comb(gamma_list,c_list)
+# all_combos = get_all_h_param_comb(gamma_list,c_list)
 
-h_metric = metrics.accuracy_score
+# h_metric = metrics.accuracy_score
 
 ## Split data 
 X, y = read_digits()
 # X_train, X_test, y_train, y_test = split_dataset(X, y, test_size=0.3)
 # X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=0.3, dev_size=0.3)
+
+print(f"Total no of samples: {len(X)}")
+print(f"Image size : {X[0].shape}")
 
 ## Use the preprocessed datas
 # X_train = data_preprocess(X_train)
@@ -132,19 +135,19 @@ X, y = read_digits()
 #     f"{metrics.classification_report(y_true, y_pred)}\n"
 # )
 
-test_sizes = [0.1, 0.2, 0.3]
-dev_sizes = [0.1, 0.2, 0.3]
+# test_sizes = [0.1, 0.2, 0.3]
+# dev_sizes = [0.1, 0.2, 0.3]
 
-for test_s in test_sizes:
-    for dev_s in dev_sizes:
-        train_size = 1 - test_s - dev_s
-        X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
+# for test_s in test_sizes:
+#     for dev_s in dev_sizes:
+#         train_size = 1 - test_s - dev_s
+#         X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
 
-        X_train = data_preprocess(X_train)
-        X_dev = data_preprocess(X_dev)
-        X_test = data_preprocess(X_test)
+#         X_train = data_preprocess(X_train)
+#         X_dev = data_preprocess(X_dev)
+#         X_test = data_preprocess(X_test)
         
-        best_hparams, best_model, best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric)
+#         best_hparams, best_model, best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric)
         
-        print(f"test_size={test_s} dev_size={dev_s} train_size={train_size} train_acc={best_accuracy:.2f} dev_acc={best_accuracy:.2f} test_acc={best_accuracy:.2f}")
-        print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")
+#         print(f"test_size={test_s} dev_size={dev_s} train_size={train_size} train_acc={best_accuracy:.2f} dev_acc={best_accuracy:.2f} test_acc={best_accuracy:.2f}")
+#         print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")

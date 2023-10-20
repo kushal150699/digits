@@ -219,8 +219,9 @@ num_runs = args.num_runs
 test_sizes = [args.test_size]
 dev_sizes = [args.dev_size]
 model_types = args.model_type
-if ',' in model_types:
-    models=model_types.split(',')
+
+models=model_types.split(',')
+
 for curr_run in range(num_runs):
     curr_run_results={}
     # for test_s in args.test_size:

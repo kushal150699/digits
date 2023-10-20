@@ -142,7 +142,7 @@ classifier_param_dict['tree'] = all_combos_tree
 # accuracy_test4 = h_metric(y_pred=y4_test_pred, y_true=y_test4)
 # accuracy_test6 = h_metric(y_pred=y6_test_pred, y_true=y_test6)
 # accuracy_test8 = h_metric(y_pred=y8_test_pred, y_true=y_test8)
-=======
+
 print(f"Total no of samples: {len(X)}")
 print(f"Image size : {X[0].shape}")
 

@@ -144,6 +144,15 @@ classifier_param_dict['tree'] = all_combos_tree
 # accuracy_test6 = h_metric(y_pred=y6_test_pred, y_true=y_test6)
 # accuracy_test8 = h_metric(y_pred=y8_test_pred, y_true=y_test8)
 
+print(f"Total no of samples: {len(X)}")
+print(f"Image size : {X[0].shape}")
+
+## Use the preprocessed datas
+# X_train = data_preprocess(X_train)
+# X_dev = data_preprocess(X_dev)
+# X_test = data_preprocess(X_test)
+
+
 # print(f"test_size={0.2} dev_size={0.7} train_size={0.1} train_acc={accuracy_train4:.2f} dev_acc={accuracy_valid4:.2f} test_acc={accuracy_test4:.2f}")
 # print(f"test_size={0.2} dev_size={0.7} train_size={0.1} train_acc={accuracy_train6:.2f} dev_acc={accuracy_valid6:.2f} test_acc={accuracy_test6:.2f}")
 # print(f"test_size={0.2} dev_size={0.7} train_size={0.1} train_acc={accuracy_train8:.2f} dev_acc={accuracy_valid8:.2f} test_acc={accuracy_test8:.2f}")
@@ -214,6 +223,7 @@ parser.add_argument("--dev_size", type=float, default=0.2, help="dev_size")
 
 args = parser.parse_args()
 
+
 results=[]
 num_runs = args.num_runs
 test_sizes = [args.test_size]
@@ -224,6 +234,7 @@ models=model_types.split(',')
 
 for curr_run in range(num_runs):
     curr_run_results={}
+  
     # for test_s in args.test_size:
     #     for dev_s in args.dev_size:
     test_s = args.test_size
@@ -256,4 +267,36 @@ for curr_run in range(num_runs):
                             'test_acc':test_acc}
         results.append(curr_run_results)
 
-print(pd.DataFrame(results).groupby('model_type')[['train_acc', 'dev_acc','test_acc']].agg(['mean', 'std']).T)                
+print(pd.DataFrame(results).groupby('model_type')[['train_acc', 'dev_acc','test_acc']].agg(['mean', 'std']).T)     
+
+# =======
+#     for test_s in test_sizes:
+#         for dev_s in dev_sizes:
+#             train_size = 1 - test_s - dev_s
+#             X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
+
+#             X_train = data_preprocess(X_train)
+#             X_dev = data_preprocess(X_dev)
+#             X_test = data_preprocess(X_test)
+
+#             for model_type in classifier_param_dict:
+#                 all_combos = classifier_param_dict[model_type]
+#                 best_hparams, best_model_path , best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric,model_type)
+
+#                 best_model = load(best_model_path)
+
+#                 test_acc = p_and_eval(best_model,h_metric,X_test,y_test)
+#                 train_acc = p_and_eval(best_model,h_metric,X_train,y_train)
+#                 dev_acc = best_accuracy
+                
+#                 print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
+#                         test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
+#                 # if model_type=="svm":
+#                 #     print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")
+#                 # if model_type=="tree":
+#                 #     print(f"Best Hyperparameters: ( max_depth : {best_hparams[0]})")    
+#                 curr_run_results = {'model_type': model_type,'run_index': curr_run,'train_acc':train_acc,'dev_acc': dev_acc , 
+#                                     'test_acc':test_acc}
+#                 results.append(curr_run_results)
+
+# print(pd.DataFrame(results).groupby('model_type').describe().T)                

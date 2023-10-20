@@ -13,7 +13,7 @@ hand-written digits, from 0-9.
 
 # Standard scientific Python imports
 import matplotlib.pyplot as plt
-
+import sys
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, metrics, svm
 from sklearn.model_selection import train_test_split
@@ -24,7 +24,7 @@ import numpy as np
 import skimage
 from skimage.transform import resize
 import pandas as pd
-
+import argparse
 ###############################################################################
 # Digits dataset
 # --------------
@@ -74,6 +74,7 @@ gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
 c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
 all_combos_svm = get_all_h_param_comb_svm(gamma_list,c_list)
 classifier_param_dict['svm'] = all_combos_svm
+
 
 #Decision Tree Hyperparameters combination
 
@@ -213,40 +214,89 @@ print(f"Image size : {X[0].shape}")
 #     f"{metrics.classification_report(y_true, y_pred)}\n"
 # )
 
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--model_type",choices=["svm","tree","svm,tree"],default="svm",help="Model type")
+parser.add_argument("--num_runs",type=int,default=3,help="Number of runs")
+parser.add_argument("--test_size", type=float, default=0.2, help="test_size")
+parser.add_argument("--dev_size", type=float, default=0.2, help="dev_size")
+
+args = parser.parse_args()
+
 
 results=[]
-num_runs = 5
-test_sizes = [0.2]
-dev_sizes = [0.2]
+num_runs = args.num_runs
+test_sizes = [args.test_size]
+dev_sizes = [args.dev_size]
+model_types = args.model_type
+
+models=model_types.split(',')
+
 for curr_run in range(num_runs):
     curr_run_results={}
-    for test_s in test_sizes:
-        for dev_s in dev_sizes:
-            train_size = 1 - test_s - dev_s
-            X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
+  
+    # for test_s in args.test_size:
+    #     for dev_s in args.dev_size:
+    test_s = args.test_size
+    dev_s = args.test_size
+    train_size = 1 - test_s - dev_s
+    X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
 
-            X_train = data_preprocess(X_train)
-            X_dev = data_preprocess(X_dev)
-            X_test = data_preprocess(X_test)
+    X_train = data_preprocess(X_train)
+    X_dev = data_preprocess(X_dev)
+    X_test = data_preprocess(X_test)
 
-            for model_type in classifier_param_dict:
-                all_combos = classifier_param_dict[model_type]
-                best_hparams, best_model_path , best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric,model_type)
+    # for model_type in classifier_param_dict:
+    for model_type in models:
+        all_combos = classifier_param_dict[model_type]
+        best_hparams, best_model_path , best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric,model_type)
 
-                best_model = load(best_model_path)
+        best_model = load(best_model_path)
 
-                test_acc = p_and_eval(best_model,h_metric,X_test,y_test)
-                train_acc = p_and_eval(best_model,h_metric,X_train,y_train)
-                dev_acc = best_accuracy
+        test_acc = p_and_eval(best_model,h_metric,X_test,y_test)
+        train_acc = p_and_eval(best_model,h_metric,X_train,y_train)
+        dev_acc = best_accuracy
+        
+        print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
+                test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
+        # if model_type=="svm":
+        #     print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")
+        # if model_type=="tree":
+        #     print(f"Best Hyperparameters: ( max_depth : {best_hparams[0]})")    
+        curr_run_results = {'model_type': model_type,'run_index': curr_run,'train_acc':train_acc,'dev_acc': dev_acc , 
+                            'test_acc':test_acc}
+        results.append(curr_run_results)
+
+print(pd.DataFrame(results).groupby('model_type')[['train_acc', 'dev_acc','test_acc']].agg(['mean', 'std']).T)     
+
+# =======
+#     for test_s in test_sizes:
+#         for dev_s in dev_sizes:
+#             train_size = 1 - test_s - dev_s
+#             X_train, X_test, X_dev, y_train, y_test, y_dev = split_train_dev_test(X, y, test_size=test_s, dev_size=dev_s)
+
+#             X_train = data_preprocess(X_train)
+#             X_dev = data_preprocess(X_dev)
+#             X_test = data_preprocess(X_test)
+
+#             for model_type in classifier_param_dict:
+#                 all_combos = classifier_param_dict[model_type]
+#                 best_hparams, best_model_path , best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, all_combos ,h_metric,model_type)
+
+#                 best_model = load(best_model_path)
+
+#                 test_acc = p_and_eval(best_model,h_metric,X_test,y_test)
+#                 train_acc = p_and_eval(best_model,h_metric,X_train,y_train)
+#                 dev_acc = best_accuracy
                 
-                print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
-                        test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
-                # if model_type=="svm":
-                #     print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")
-                # if model_type=="tree":
-                #     print(f"Best Hyperparameters: ( max_depth : {best_hparams[0]})")    
-                curr_run_results = {'model_type': model_type,'run_index': curr_run,'train_acc':train_acc,'dev_acc': dev_acc , 
-                                    'test_acc':test_acc}
-                results.append(curr_run_results)
+#                 print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
+#                         test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
+#                 # if model_type=="svm":
+#                 #     print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")
+#                 # if model_type=="tree":
+#                 #     print(f"Best Hyperparameters: ( max_depth : {best_hparams[0]})")    
+#                 curr_run_results = {'model_type': model_type,'run_index': curr_run,'train_acc':train_acc,'dev_acc': dev_acc , 
+#                                     'test_acc':test_acc}
+#                 results.append(curr_run_results)
 
-print(pd.DataFrame(results).groupby('model_type').describe().T)                
+# print(pd.DataFrame(results).groupby('model_type').describe().T)                

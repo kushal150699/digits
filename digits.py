@@ -142,6 +142,15 @@ classifier_param_dict['tree'] = all_combos_tree
 # accuracy_test4 = h_metric(y_pred=y4_test_pred, y_true=y_test4)
 # accuracy_test6 = h_metric(y_pred=y6_test_pred, y_true=y_test6)
 # accuracy_test8 = h_metric(y_pred=y8_test_pred, y_true=y_test8)
+=======
+print(f"Total no of samples: {len(X)}")
+print(f"Image size : {X[0].shape}")
+
+## Use the preprocessed datas
+# X_train = data_preprocess(X_train)
+# X_dev = data_preprocess(X_dev)
+# X_test = data_preprocess(X_test)
+
 
 # print(f"test_size={0.2} dev_size={0.7} train_size={0.1} train_acc={accuracy_train4:.2f} dev_acc={accuracy_valid4:.2f} test_acc={accuracy_test4:.2f}")
 # print(f"test_size={0.2} dev_size={0.7} train_size={0.1} train_acc={accuracy_train6:.2f} dev_acc={accuracy_valid6:.2f} test_acc={accuracy_test6:.2f}")
@@ -203,6 +212,7 @@ classifier_param_dict['tree'] = all_combos_tree
 #     "Classification report rebuilt from confusion matrix:\n"
 #     f"{metrics.classification_report(y_true, y_pred)}\n"
 # )
+
 
 results=[]
 num_runs = 5

@@ -53,9 +53,9 @@ def tune_hparams(X_train, y_train, X_dev, y_dev, all_combos,metric,model_type='s
     best_model_path=""
 
     for param in all_combos:
-        if model_type=="svm":
+        if model_type=="Production_Model_svm":
             cur_model = train_model(X_train,y_train,{'gamma':param[0],'C':param[1]},model_type='svm')
-        if model_type=="tree":
+        if model_type=="Candidate_Model_tree":
             cur_model = train_model(X_train,y_train,{'max_depth':param[0]},model_type='tree')    
         val_accuracy = p_and_eval(cur_model,metric,X_dev,y_dev)
         if val_accuracy > best_accuracy:

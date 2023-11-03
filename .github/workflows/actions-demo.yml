@@ -25,6 +25,4 @@ jobs:
       - name: Run experiment
         run: python digits.py
       - name: Build Docker image
-        run: docker build -t digits:v1 -f docker/Dockerfile .
-      - name: Run Docker container
-        run: sudo docker run -v \\wsl.localhost\Ubuntu\home\kushal\digits\models:/digits/models digits:v1  
+        run: bash ./docker_run.sh

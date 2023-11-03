@@ -87,7 +87,7 @@ classifier_param_dict['Candidate_Model_tree'] = all_combos_tree
 parser = argparse.ArgumentParser()
 
 # parser.add_argument("--model_type",choices=["svm","tree","svm,tree"],default="svm",help="Model type")
-parser.add_argument("--num_runs",type=int,default=1,help="Number of runs")
+parser.add_argument("--num_runs",type=int,default=5,help="Number of runs")
 parser.add_argument("--test_size", type=float, default=0.2, help="test_size")
 parser.add_argument("--dev_size", type=float, default=0.2, help="dev_size")
 
@@ -136,8 +136,8 @@ for curr_run in range(num_runs):
         train_acc = p_and_eval(best_model,h_metric,X_train,y_train)
         dev_acc = best_accuracy
         
-        print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
-                test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
+        # print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
+        #         test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
         # if model_type=="svm":
         #     print(f"Best Hyperparameters: ( gamma : {best_hparams[0]} , C : {best_hparams[1]} )")
         # if model_type=="tree":
@@ -151,22 +151,22 @@ for curr_run in range(num_runs):
 
 confusion_matrix_svm_tree = confusion_matrix(predictions_tree,predictions_svm)
 
-print("")
-print("Confusion matrix between predictions of production and candidate models")
-print(confusion_matrix_svm_tree)
-print("")
+# print("")
+# print("Confusion matrix between predictions of production and candidate models")
+# print(confusion_matrix_svm_tree)
+# print("")
 
-tp = confusion_matrix_svm[1, 1]
-tn = confusion_matrix_tree[0, 0]
-fp = confusion_matrix_svm[0, 1]
-fn = confusion_matrix_svm[1, 0]
+# tp = confusion_matrix_svm[1, 1]
+# tn = confusion_matrix_tree[0, 0]
+# fp = confusion_matrix_svm[0, 1]
+# fn = confusion_matrix_svm[1, 0]
 
-matrix_2x2 = [[tp, fp], [fn, tn]]
+# matrix_2x2 = [[tp, fp], [fn, tn]]
 
-print("2x2 Confusion Matrix: btw production and candidate model")
-for row in matrix_2x2:
-    print(row)
+# print("2x2 Confusion Matrix: btw production and candidate model")
+# for row in matrix_2x2:
+#     print(row)
 
-print("")
-print("Macro-average F1 Score for Production_Model_svm:", f1_svm)
-print("Macro-average F1 Score for Candidate_Model_tree:", f1_tree)
+# print("")
+# print("Macro-average F1 Score for Production_Model_svm:", f1_svm)
+# print("Macro-average F1 Score for Candidate_Model_tree:", f1_tree)

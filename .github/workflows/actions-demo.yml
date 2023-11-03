@@ -24,3 +24,5 @@ jobs:
         run: python -m pytest
       - name: Run experiment
         run: python digits.py
+      - name: Build Docker image
+        run: bash ./docker_run.sh

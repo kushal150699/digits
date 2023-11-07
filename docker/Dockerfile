@@ -5,4 +5,8 @@ COPY . /digits/
 # RUN apt-get install -y python3 python3-pip
 RUN pip3 install -r /digits/requirements.txt
 WORKDIR /digits
-CMD ["python","digits.py"]
+# CMD ["python","digits.py"]
+
+ENV FLASK_APP=api/flask_temp
+# EXPOSE 5000
+CMD ['flask','run',"--host=0.0.0.0"]

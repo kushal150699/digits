@@ -21,8 +21,8 @@ from utils import data_preprocess, train_model, read_digits, split_train_dev_tes
 import pdb
 from joblib import dump,load
 import numpy as np
-import skimage
-from skimage.transform import resize
+# import skimage
+# from skimage.transform import resize
 import pandas as pd
 import argparse
 from sklearn.metrics import confusion_matrix
@@ -87,7 +87,7 @@ classifier_param_dict['Candidate_Model_tree'] = all_combos_tree
 parser = argparse.ArgumentParser()
 
 # parser.add_argument("--model_type",choices=["svm","tree","svm,tree"],default="svm",help="Model type")
-parser.add_argument("--num_runs",type=int,default=5,help="Number of runs")
+parser.add_argument("--num_runs",type=int,default=1,help="Number of runs")
 parser.add_argument("--test_size", type=float, default=0.2, help="test_size")
 parser.add_argument("--dev_size", type=float, default=0.2, help="dev_size")
 
@@ -168,5 +168,5 @@ confusion_matrix_svm_tree = confusion_matrix(predictions_tree,predictions_svm)
 #     print(row)
 
 # print("")
-# print("Macro-average F1 Score for Production_Model_svm:", f1_svm)
-# print("Macro-average F1 Score for Candidate_Model_tree:", f1_tree)
+print("Macro-average F1 Score for Production_Model_svm:", f1_svm)
+print("Macro-average F1 Score for Candidate_Model_tree:", f1_tree)

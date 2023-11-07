@@ -14,6 +14,3 @@ def digit_model():
     y = js['y']
 
     return x+y
-
-if __name__ == '__main__':  
-   app.run()

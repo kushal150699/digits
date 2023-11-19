@@ -23,32 +23,32 @@ def compare_digits():
     try:
         # Get the two image files from the request
         data = request.get_json()  # Parse JSON data from the request body
-        image1 = data.get('image1', [])
-        image2 = data.get('image2', [])
+        image1 = data.get('data', [])
+        # image2 = data.get('image2', [])
 
         # Preprocess the images and make predictions
         digit1 = predict_digit(image1)
-        digit2 = predict_digit(image2)
+        # digit2 = predict_digit(image2)
 
         # Compare the predicted digits and return the result
-        result = digit1 == digit2
+        # result = digit1 == digit2
 
-        return jsonify({'result': result})
+        return jsonify({"digit":digit1})
     except Exception as e:
         return jsonify({'error': str(e)})
     
 def predict_digit(image):
     try:
         # Convert the input list to a numpy array and preprocess for prediction
-        img_array = np.array(image, dtype=np.float32).reshape(1, 28, 28, 1) / 255.0
-
+        img_array = np.array(image, dtype=np.float32).reshape(1,-1) / 255.0
+    
         prediction = model.predict(img_array)
-        digit = np.argmax(prediction)
-
+        digit = int(np.argmax(prediction))
+        print(digit)
         return digit
     except Exception as e:
         return str(e)
 
 
-if __name__ == '_main_':
+if __name__ == '__main__':
     app.run()

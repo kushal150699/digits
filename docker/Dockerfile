@@ -3,7 +3,7 @@ FROM python:3.10.13
 # Set the working directory
 WORKDIR /digits
 
-# Copy the requirements file from the root directory
+# # Copy the requirements file from the root directory
 COPY requirements.txt /digits/
 
 # Install dependencies
@@ -13,7 +13,7 @@ RUN pip3 install -r requirements.txt
 COPY . /digits/
 
 # Set the FLASK_APP environment variable
-ENV FLASK_APP=api/quiz3
+ENV FLASK_APP=api/quiz4
 
 # Expose the Flask app's port
 EXPOSE 80

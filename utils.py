@@ -5,6 +5,8 @@ from sklearn import datasets, metrics, svm , tree
 from sklearn.model_selection import train_test_split
 from joblib import dump,load
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import Normalizer
 
 def read_digits():
     data = datasets.load_digits()
@@ -40,6 +42,8 @@ def train_model(x, y, model_params, model_type='svm'):
         clf = svm.SVC
     if model_type=='tree':
         clf = tree.DecisionTreeClassifier
+    if model_type == 'lr': 
+        clf = LogisticRegression    
     model = clf(**model_params)
     # pdb.set_trace()
     model.fit(x, y)
@@ -55,18 +59,27 @@ def tune_hparams(X_train, y_train, X_dev, y_dev, all_combos,metric,model_type='s
     for param in all_combos:
         if model_type=="Production_Model_svm":
             cur_model = train_model(X_train,y_train,{'gamma':param[0],'C':param[1]},model_type='svm')
+            model_path = "./models/{}_{}.joblib".format("M23CSA011_svm", param).replace(":", "_")
+            dump(cur_model,model_path) 
         if model_type=="Candidate_Model_tree":
-            cur_model = train_model(X_train,y_train,{'max_depth':param[0]},model_type='tree')    
-        val_accuracy = p_and_eval(cur_model,metric,X_dev,y_dev)
-        if val_accuracy > best_accuracy:
-            best_accuracy = val_accuracy
-            best_hparams=param
-            best_model_path = "./models/{}_{}.joblib".format(model_type, param).replace(":", "_")
-            best_model = cur_model
+            cur_model = train_model(X_train,y_train,{'max_depth':param[0]},model_type='tree') 
+            model_path = "./models/{}_{}.joblib".format("M23CSA011_tree", param).replace(":", "_")  
+            dump(cur_model,model_path)  
+        if model_type=="Logistic_Regression":
+            cur_model = train_model(X_train,y_train,{'solver':param[0]},model_type='lr')   
+            model_path = "./models/{}_{}.joblib".format("M23CSA011_lr", param).replace(":", "_")
+            dump(cur_model, model_path)  
+
+        # val_accuracy = p_and_eval(cur_model,metric,X_dev,y_dev)
+        # if val_accuracy > best_accuracy:
+        #     best_accuracy = val_accuracy
+        #     best_hparams=param
+        #     best_model_path = "./models/{}_{}.joblib".format(model_type, param).replace(":", "_")
+        #     best_model = cur_model
         
-    dump(best_model,best_model_path) 
+    # dump(best_model,best_model_path) 
     # print("Model save at {}".format(best_model_path))   
-    return best_hparams, best_model_path, best_accuracy     
+    return param, model_path, best_accuracy     
 
 def split_train_dev_test(X, y, test_size, dev_size):
     # Split data into test and temporary (train + dev) sets

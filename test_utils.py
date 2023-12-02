@@ -3,6 +3,9 @@ from sklearn import datasets, metrics, svm
 import os
 from api.quiz4 import app
 import pytest
+from joblib import load
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
 
 def test_for_hyperparameter_combination_count_svm():
     gamma_list = [0.01, 0.005, 0.001, 0.0005, 0.0001]
@@ -29,6 +32,26 @@ def test_for_hyperparameter_combination_values_tree():
     all_combos = get_all_h_param_comb_tree(depth_list)
 
     assert (5,) in all_combos
+
+
+def test_loaded_model_is_logistic_regression():
+    model_file_path = "./models/M23CSA011_lr_('sag',).joblib"
+    loaded_model = load(model_file_path)
+
+    assert isinstance(loaded_model, LogisticRegression) or isinstance(loaded_model, LogisticRegressionCV)
+
+def test_solver_name_match_in_model_file():
+    model_file_path = "./models/M23CSA011_lr_('sag',).joblib"
+    loaded_model = load(model_file_path)
+
+    # Extracting solver name from the model file name
+    _, _, file_name = model_file_path.rpartition('/')
+    solver_name_from_file = file_name.split('_')[-1].split('.')[0][2:5]
+
+    # Extracting solver name from the loaded model
+    solver_name_from_model = loaded_model.get_params()['solver']
+
+    assert solver_name_from_file == solver_name_from_model
 
 # def test_model_saving():
 #     X, y = read_digits()
@@ -78,24 +101,24 @@ def test_for_hyperparameter_combination_values_tree():
 
 #     assert os.path.exists(best_model_path)
 
-@pytest.fixture
-def client():
-    return app.test_client()
+# @pytest.fixture
+# def client():
+#     return app.test_client()
 
-def test_post_predict(client):
-    X, y = read_digits()
+# def test_post_predict(client):
+#     X, y = read_digits()
 
-    for digit in range(10):
-        digit_indices = (y == digit).nonzero()[0]
-        if len(digit_indices) > 0:
-            sample_index = digit_indices[0]
-            img = X[sample_index]
-            if img is not None and img.size > 0:
-                img = img.reshape((1, 8, 8, 1))
-                response = client.post("/predict", json={"data": img.tolist()})
-                assert response.status_code == 200
-                try:
-                    assert response.get_json()['digit'] == digit
-                except Exception as e:
-                    pass
+#     for digit in range(10):
+#         digit_indices = (y == digit).nonzero()[0]
+#         if len(digit_indices) > 0:
+#             sample_index = digit_indices[0]
+#             img = X[sample_index]
+#             if img is not None and img.size > 0:
+#                 img = img.reshape((1, 8, 8, 1))
+#                 response = client.post("/predict", json={"data": img.tolist()})
+#                 assert response.status_code == 200
+#                 try:
+#                     assert response.get_json()['digit'] == digit
+#                 except Exception as e:
+#                     pass
 

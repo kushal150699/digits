@@ -21,12 +21,13 @@ from utils import data_preprocess, train_model, read_digits, split_train_dev_tes
 import pdb
 from joblib import dump,load
 import numpy as np
-# import skimage
-# from skimage.transform import resize
 import pandas as pd
 import argparse
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import Normalizer
 ###############################################################################
 # Digits dataset
 # --------------
@@ -68,6 +69,15 @@ X, y = read_digits()
 
 h_metric = metrics.accuracy_score
 
+# # Flatten each image
+# X = X.reshape(X.shape[0], -1)
+X = data_preprocess(X)
+# Create a StandardScaler object
+scaler = Normalizer()
+
+# Apply unit normalization to the features
+X = scaler.fit_transform(X)
+
 classifier_param_dict = {}
 
 # SVM Hyperparameters combination
@@ -77,6 +87,10 @@ c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
 all_combos_svm = get_all_h_param_comb_svm(gamma_list,c_list)
 classifier_param_dict['Production_Model_svm'] = all_combos_svm
 
+# Logistic Regression Hyperparameters combination
+solver_list = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+all_combos_lr = [(solver,) for solver in solver_list]
+classifier_param_dict['Logistic_Regression'] = all_combos_lr
 
 #Decision Tree Hyperparameters combination
 
@@ -87,7 +101,7 @@ classifier_param_dict['Candidate_Model_tree'] = all_combos_tree
 parser = argparse.ArgumentParser()
 
 # parser.add_argument("--model_type",choices=["svm","tree","svm,tree"],default="svm",help="Model type")
-parser.add_argument("--num_runs",type=int,default=1,help="Number of runs")
+parser.add_argument("--num_runs",type=int,default=5,help="Number of runs")
 parser.add_argument("--test_size", type=float, default=0.2, help="test_size")
 parser.add_argument("--dev_size", type=float, default=0.2, help="dev_size")
 
@@ -98,7 +112,7 @@ results=[]
 num_runs = args.num_runs
 test_sizes = [args.test_size]
 dev_sizes = [args.dev_size]
-model_types = "Production_Model_svm,Candidate_Model_tree"
+model_types = "Production_Model_svm,Candidate_Model_tree,Logistic_Regression"
 
 models=model_types.split(',')
 
@@ -116,6 +130,10 @@ for curr_run in range(num_runs):
     X_dev = data_preprocess(X_dev)
     X_test = data_preprocess(X_test)
 
+    # X_train = scaler.transform(X_train)
+    # X_dev = scaler.transform(X_dev)
+    # X_test = scaler.transform(X_test)
+
     # for model_type in classifier_param_dict:
     for model_type in models:
         all_combos = classifier_param_dict[model_type]
@@ -131,10 +149,21 @@ for curr_run in range(num_runs):
             predictions_tree = best_model.predict(X_test) 
             confusion_matrix_tree = confusion_matrix(y_test, predictions_tree)
             f1_tree = f1_score(y_test, predictions_tree, average='macro')
+        if model_type == "Logistic_Regression":
+            predictions_lr = best_model.predict(X_test)
+            confusion_matrix_lr = confusion_matrix(y_test, predictions_lr)
+            f1_lr = f1_score(y_test, predictions_lr, average='macro') 
+
+            # Print the performance metrics for each solver
+            print("F1 Score (Macro-average):", f1_lr)
 
         test_acc = p_and_eval(best_model,h_metric,X_test,y_test)
         train_acc = p_and_eval(best_model,h_metric,X_train,y_train)
         dev_acc = best_accuracy
+
+        curr_run_results = {'model_type': model_type, 'run_index': curr_run, 'train_acc': train_acc,
+                            'dev_acc': dev_acc, 'test_acc': test_acc}
+        results.append(curr_run_results)
         
         # print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type,
         #         test_s,dev_s,train_size,train_acc,dev_acc,test_acc))
@@ -149,7 +178,7 @@ for curr_run in range(num_runs):
 
 # print(pd.DataFrame(results).groupby('model_type')[['train_acc', 'dev_acc','test_acc']].agg(['mean', 'std']).T)     
 
-confusion_matrix_svm_tree = confusion_matrix(predictions_tree,predictions_svm)
+# confusion_matrix_svm_tree = confusion_matrix(predictions_tree,predictions_svm)
 
 # print("")
 # print("Confusion matrix between predictions of production and candidate models")
@@ -168,5 +197,12 @@ confusion_matrix_svm_tree = confusion_matrix(predictions_tree,predictions_svm)
 #     print(row)
 
 # print("")
-print("Macro-average F1 Score for Production_Model_svm:", f1_svm)
-print("Macro-average F1 Score for Candidate_Model_tree:", f1_tree)
+# print("Macro-average F1 Score for Production_Model_svm:", f1_svm)
+# print("Macro-average F1 Score for Candidate_Model_tree:", f1_tree)
+
+# Print mean and std of performance for Logistic Regression
+lr_results = pd.DataFrame(results).loc[pd.DataFrame(results)['model_type'] == 'Logistic_Regression']
+lr_mean_std = lr_results.groupby('model_type')[['train_acc', 'dev_acc', 'test_acc']].agg(['mean', 'std']).T
+print("Mean and Std for Logistic Regression:")
+print(lr_mean_std)
+

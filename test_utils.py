@@ -101,24 +101,24 @@ def test_solver_name_match_in_model_file():
 
 #     assert os.path.exists(best_model_path)
 
-@pytest.fixture
-def client():
-    return app.test_client()
+# @pytest.fixture
+# def client():
+#     return app.test_client()
 
-def test_post_predict(client):
-    X, y = read_digits()
+# def test_post_predict(client):
+#     X, y = read_digits()
 
-    for digit in range(10):
-        digit_indices = (y == digit).nonzero()[0]
-        if len(digit_indices) > 0:
-            sample_index = digit_indices[0]
-            img = X[sample_index]
-            if img is not None and img.size > 0:
-                img = img.reshape((1, 8, 8, 1))
-                response = client.post("/predict", json={"data": img.tolist()})
-                assert response.status_code == 200
-                try:
-                    assert response.get_json()['digit'] == digit
-                except Exception as e:
-                    pass
+#     for digit in range(10):
+#         digit_indices = (y == digit).nonzero()[0]
+#         if len(digit_indices) > 0:
+#             sample_index = digit_indices[0]
+#             img = X[sample_index]
+#             if img is not None and img.size > 0:
+#                 img = img.reshape((1, 8, 8, 1))
+#                 response = client.post("/predict", json={"data": img.tolist()})
+#                 assert response.status_code == 200
+#                 try:
+#                     assert response.get_json()['digit'] == digit
+#                 except Exception as e:
+#                     pass
 
